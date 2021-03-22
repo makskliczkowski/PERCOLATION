@@ -18,27 +18,37 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
 #include "RandomAlghorithms.h"
 
+// for different systems
 static const char* kPathSeparator =
 #ifdef _WIN32
 "\\";
 #else
 "/";
 #endif
+
 namespace general {
 
 	typedef std::vector<std::vector<std::vector<std::tuple<int, int>>>> neighborsStructure;
 
 	/* FUNCTIONS */
 	template <typename T>
-	std::string to_string_prec(const T a_value, const int n = 3);
+	std::string to_string_prec(const T a_value, const int n = 3) {
+		std::ostringstream out;
+		out.precision(n);
+		out << std::fixed << a_value;
+		return out.str();
+	}
 	std::vector<std::string> split_str(std::string s, std::string delimiter);
 
+
+
 	/// <summary>
-/// Virutal lattice class, it will provide us with a strict geometry that we need
-/// LATER - THINK ABOUT HOW TO MAKE IT MORE GENERAL AND PROVIDE VISUALIZATION HOW THE LATTICE ELEMENTS ARE NUMBERED
-/// </summary>
+	/// Virutal lattice class, it will provide us with a strict geometry that we need
+	/// LATER - THINK ABOUT HOW TO MAKE IT MORE GENERAL AND PROVIDE VISUALIZATION HOW THE LATTICE ELEMENTS ARE NUMBERED
+	/// </summary>
 	class lattice2D {
 	public:
 		enum lattice_types {
@@ -63,6 +73,7 @@ namespace general {
 		int get_Ns();
 
 		lattice2D::lattice_types get_type();
+		std::string getString_type();
 		std::tuple<int,int> get_nn(int x,int y, int nei_num);
 		std::tuple<int, int> get_nnn(int x,int y, int nei_num);
 		int get_nn_number(int x,int y);
@@ -102,6 +113,11 @@ namespace general {
 		virtual std::unique_ptr <general::lattice2D > move_clone() override {
 			return std::unique_ptr<general::lattice2D>(new general::square_lattice(std::move(*this)));
 		}
+	};
+	std::unordered_map < std::string, general::lattice2D::lattice_types > const lattice_parse_table = {
+		{"square",general::lattice2D::square},
+		{"triangle",general::lattice2D::triangle},
+		{"hexagonal",general::lattice2D::hexagonal},
 	};
 }
 

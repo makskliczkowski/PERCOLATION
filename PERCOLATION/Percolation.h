@@ -13,7 +13,7 @@ namespace percolation{
 		int shortestPath;
 		int maxClusterSize;
 		// lattice for the model
-		std::unique_ptr<general::lattice2D> lattice;
+		general::lattice2D* lattice;
 		// all the sites
 		std::vector<std::vector<int>> sites;
 		std::vector<std::vector<int>> burned;
@@ -26,7 +26,7 @@ namespace percolation{
 	public:
 		/* General */
 		SitePercolationMonteCarlo();
-		SitePercolationMonteCarlo(double p, general::lattice2D& lattice);
+		SitePercolationMonteCarlo(double p, general::lattice2D* lattice);
 		~SitePercolationMonteCarlo() = default;
 		SitePercolationMonteCarlo(const SitePercolationMonteCarlo& A);
 		SitePercolationMonteCarlo(SitePercolationMonteCarlo&& A) noexcept;
@@ -38,12 +38,15 @@ namespace percolation{
 
 		/* GETTERS */
 		int getIfPercolating() const;
+		int getSmax() const;
 		std::vector<std::vector<int>> getBurned()const;
 		std::vector<std::vector<int>> getClusters();
+		std::vector<int> getDistribution() const;
+		int getDistributionElem(int elem);
 
 		/* PRINTERS */
-		void printBurned(std::ostream& output, std::string separator = "\t");
-		void printClusters(std::ostream& output, std::string separator = "\t");
+		void printBurned(std::string directory, std::string separator, int numberOfPicture = 0);
+		void printClusters(std::string directory, std::string separator, int numberOfPicture = 0);
 
 		/* SETTERS */
 		void setProbability(double p);
@@ -53,12 +56,29 @@ namespace percolation{
 
 	};
 	/* SIMULATION FUNCTIONS */
+	
+	enum parsers {
+		T,
+		L,
+		l,
+		p0,
+		pk,
+		dp,
+		d
+	};
 
-	double makeSingleSimulation(double rho, int Lx, int Ly, int mcs);
 
 
+	void exit_with_help();
+
+
+	void makeSingleSimulation(std::string param_file = "input.txt");
+	void singleFor(int mcsteps, int L, double rho,general::lattice2D* lattice, std::string lat_type_str, std::string sv_dir);
+	// print flow probability and maximal cluster size
+	void printProbability(std::string directory, int L, int mcsteps, double rho, double av_pflow, double av_smax, std::string, std::string separator = "  ");
+	// print distribution of the clusters
+	void printDistribution(std::string directory, int L, int mcsteps, double rho, std::string lat_type, const std::vector<double>& ns, std::string separator = "  ");
 }
-
 
 
 #endif

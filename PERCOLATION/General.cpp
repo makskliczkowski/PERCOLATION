@@ -1,21 +1,7 @@
 #include "General.h"
 using namespace std;
 
-/// <summary>
-/// Prints string with given precision
-/// </summary>
-/// <typeparam name="T">Template for value</typeparam>
-/// <param name="a_value">Value to be printed</param>
-/// <param name="n">Precison</param>
-/// <returns></returns>
-template<typename T>
-std::string general::to_string_prec(const T a_value, const int n)
-{
-	std::ostringstream out;
-	out.precision(n);
-	out << std::fixed << a_value;
-	return out.str();
-}
+
 /// <summary>
 /// Function to split string into substrings by delimiter
 /// </summary>
@@ -143,6 +129,26 @@ int general::lattice2D::get_Ns()
 general::lattice2D::lattice_types general::lattice2D::get_type()
 {
 	return this->type;
+}
+
+std::string general::lattice2D::getString_type()
+{
+	std::string lat;
+	switch (this->get_type()) {
+	case general::lattice2D::lattice_types::square:
+		lat = "square";
+		break;
+	case general::lattice2D::lattice_types::triangle:
+		lat = "triangle";
+		break;
+	case general::lattice2D::lattice_types::hexagonal:
+		lat = "hexagonal";
+	default:
+		std::cout << "Don't know that option for lattice, excuse me\n";
+		std::cout << "Try square,triangle,hexagonal -> got'em\n";
+		exit(-1);
+	}
+	return lat;
 }
 
 std::tuple<int, int> general::lattice2D::get_nn(int x, int y, int nei_num)
