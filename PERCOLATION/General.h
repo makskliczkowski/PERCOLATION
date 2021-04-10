@@ -114,6 +114,42 @@ namespace general {
 			return std::unique_ptr<general::lattice2D>(new general::square_lattice(std::move(*this)));
 		}
 	};
+	/// <summary>
+	/// Triangular lattice
+	/// Dimensions are again given the same as in square
+	/// </summary>
+	class triangle_lattice :public virtual lattice2D {
+	private:
+		int Lx;
+		int Ly;
+	public:
+		triangle_lattice();
+		triangle_lattice(int Lx, int Ly);
+		~triangle_lattice() final;
+		triangle_lattice(const triangle_lattice& A);
+		triangle_lattice(triangle_lattice&& A) noexcept;
+		/* Getters */
+		int get_Lx() override;
+		int get_Ly() override;
+		/* Calculators */
+		void calculate_nn_pbc() override;
+		void calculate_nnn_pbc() override;
+		void calculate_nn() override;
+		void calculate_nnn() override;
+
+		/* Clone functions */
+		virtual std::unique_ptr<general::lattice2D> clone() const override {
+			return std::unique_ptr<general::lattice2D>(new general::triangle_lattice(*this));
+		}
+		virtual std::unique_ptr <general::lattice2D > move_clone() override {
+			return std::unique_ptr<general::lattice2D>(new general::triangle_lattice(std::move(*this)));
+		}
+	};
+
+
+	/// <summary>
+	/// Map for lattices
+	/// </summary>
 	std::unordered_map < std::string, general::lattice2D::lattice_types > const lattice_parse_table = {
 		{"square",general::lattice2D::square},
 		{"triangle",general::lattice2D::triangle},

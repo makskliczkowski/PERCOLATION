@@ -517,8 +517,13 @@ void percolation::makeSingleSimulation(std::string param_file) {
 
 	// get lattice type
 	switch (lat_type) {
-	case general::lattice2D::square:
+	case general::lattice2D::lattice_types::square:
 		lattice = new general::square_lattice(Lx, Lx);
+		lat_type_str = "square";
+		break;
+	case general::lattice2D::lattice_types::triangle:
+		lattice = new general::triangle_lattice(Lx, Lx);
+		lat_type_str = "triangle";
 		break;
 	default:
 		std::cout << "Sorry, must add them\n";
@@ -530,7 +535,7 @@ void percolation::makeSingleSimulation(std::string param_file) {
 
 	// FOR OTHER VALUES
 #pragma omp parallel for
-	for (int i = 0; i <= pnum+1; i++) {
+	for (int i = 0; i <= pnum; i++) {
 		double rho = p_0 + i * d_p;
 		percolation::singleFor(mcsteps, Lx, rho, lattice, lat_type_str, sv_dir);
 	}
@@ -539,34 +544,32 @@ void percolation::makeSingleSimulation(std::string param_file) {
 }
 void percolation::singleFor(int mcsteps, int L, double rho, general::lattice2D* lattice,std::string lat_type_str, std::string sv_dir)
 {
+	double tol = 1.0e-6;
 	double pflow = 0.0;
 	double smax = 0.0;
-	std::vector<double> avDist(L * L, 0);
+	std::vector<double> avDist(lattice->get_Ns(), 0.0);
 	/* make sim */
 	percolation::SitePercolationMonteCarlo sim(rho, lattice);
 	for (int step = 0; step < mcsteps; step++) {
-#pragma omp atomic
 		pflow += double(sim.getIfPercolating());
-#pragma omp atomic
 		smax += double(sim.getSmax());
-		for (int elem = 0; elem < L * L; elem++) {
-#pragma omp atomic
+		for (int elem = 0; elem < lattice->get_Ns(); elem++) {
 			avDist[elem] += sim.getDistributionElem(elem);
 		}
 		sim.setFields();
 	}
 	/* normalise */
 	pflow = 1.0 * pflow / (1.0 * mcsteps);
-	smax = 1.0 * smax / (1.0 * mcsteps *L*L); // relative size
+	smax = 1.0 * smax / (1.0 * mcsteps * lattice->get_Ns()); // relative size
 	for (int elem = 0; elem < lattice->get_Ns(); elem++) {
-		avDist[elem] = 1.0 * avDist[elem] / (1.0 * mcsteps);
+		avDist[elem] = avDist[elem] / (1.0 * mcsteps);
 	}
 	/* print */
 
 #pragma omp critical
 	percolation::printProbability(sv_dir, L, mcsteps, rho, pflow, smax, lat_type_str, "  ");
 #pragma omp critical
-	if (rho == 0.2 || rho == 0.3 || rho == 0.4 || rho == 0.5 || rho == 0.6 || rho == 0.7 || rho == 0.8 || rho == 0.592746) {
+	if ((rho > 0.2-tol && rho < 0.2 + tol) || (rho > 0.3 - tol && rho < 0.3 + tol) || (rho > 0.4 - tol && rho < 0.4 + tol) || (rho > 0.5 - tol && rho < 0.5 + tol) || (rho > 0.6 - tol && rho < 0.6 + tol) || (rho > 0.7 - tol && rho < 0.7 + tol) || (rho > 0.8 - tol && rho < 0.8 + tol) || rho == 0.592746) {
 		sim.printBurned(sv_dir, "  ");
 		sim.printClusters(sv_dir, "  ");
 		percolation::printDistribution(sv_dir, L, mcsteps, rho, lat_type_str, avDist, "  ");
@@ -605,7 +608,7 @@ void percolation::printDistribution(std::string directory, int L, int mcsteps, d
 	/* open file */
 	string filename = folder + "'Dist_p" + to_string(rho) + "L" + to_string(L) +  "T" + to_string(mcsteps) + ".txt";
 	std::ofstream file;
-	file.open(filename, ios::app | ios::out);
+	file.open(filename, ios::out);
 	if (!file.is_open()) {
 		cout << "Couldn't open a file : " + filename << endl;
 		exit(-1);
@@ -614,7 +617,10 @@ void percolation::printDistribution(std::string directory, int L, int mcsteps, d
 
 	/* saving to file */
 	for (int s = 0; s < ns.size(); s++) {
-		if(ns[s]>0 ) file << s << separator << to_string(ns[s]) << endl;
+//if (ns[s] > 0.0) {
+			file << s << separator << ns[s] << endl;
+//	}
+		//else continue;
 		
 	}
 	file.close();
